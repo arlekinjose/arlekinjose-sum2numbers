@@ -1,0 +1,76 @@
+- hosts: postgres
+  become: yes
+  vars:
+    postgresql_global_config_options:
+      - option: listen_addresses
+        value: '*'
+    postgresql_hba_entries:
+      - { type: local, database: all, user: postgres, auth_method: peer }
+      - { type: local, database: all, user: all, auth_method: peer }
+      - { type: host, database: all, user: all, address: all, auth_method: md5 }
+      - { type: host, database: all, user: all, address: '::1/128', auth_method: md5 }          
+    postgresql_python_library: python3-psycopg2
+    postgresql_databases:
+      - name: sumtwonumbersdb    
+        state: absent
+      - name: sumtwonumbersdb    
+        state: present
+    postgresql_users:
+      - name: sumtwonumbers
+        password: DB_APP_PASSWORD_VALUE
+      - name: postgres
+        password: PG_PASSWORD_VALUE      
+  roles:
+    - geerlingguy.postgresql
+      
+- hosts: postgres
+  become: yes
+  tasks:
+    - name: "Install acl"
+      apt:              
+        state: present
+        name:
+          - acl      
+    - name: "Load SQL script into a variable"
+      set_fact:
+        init_db_sql: "{{ lookup('file', 'sumtwonumbers_db-ansible.sql') }}"          
+    - name: "Execute script from variable"
+      command: "psql -U postgres --dbname sumtwonumbersdb -c {{ init_db_sql | quote }}"
+      become_user: postgres
+      register: sql_response_variable
+- hosts: restapi
+  become: yes
+  vars:
+    pip_package: python3-pip
+    pip_executable: pip3
+    pip_install_packages:
+      - name: docker
+    docker_users:
+      - ubuntu
+  roles:
+    - geerlingguy.pip
+    - geerlingguy.docker
+
+- hosts: restapi
+  gather_facts: no
+  become: yes
+  tasks:
+    - name: "Copy docker tarball to host"
+      copy:
+        src: jib-image.tar
+        dest: /root/jib-image.tar
+    - name: "Load container from tarball"
+      community.docker.docker_image:
+        name: springio/sumtwonumbers:latest
+        load_path: /root/jib-image.tar
+        state: present
+        source: load
+    - name: "Execute RESTAPI docker container"
+      community.docker.docker_container:
+        name: "Sum2numbers"
+        image: springio/sumtwonumbers:latest
+        state: started
+        restart: yes        
+        recreate: yes
+        ports:
+         - "8080:8080"
