@@ -1,17 +1,23 @@
 # sumtwonumbers-api
 
-REST API for tracking expenses.
+REST API for getting the sum of two numbers.
 
 A RESTful API created using Spring Boot. We have used PostgreSQL as the relational database and JdbcTemplate to interact with that.
 Apart from this, we have used JSON Web Token (JWT) to add authentication. Using JWT, we can protect certain endpoints and ensure that user must be logged-in to access those.
 
-Here are all the videos where we have created this API from scratch - [Youtube Playlist](https://www.youtube.com/playlist?list=PLWieu6NbbqTwwYwylgXmmKVX1ZWsUVx8m)
+The code of the Spring Boot is based on the youtube course teached by Beau Carnes of freeCodeCamp.org which you can access here - [Youtube Playlist](https://www.youtube.com/playlist?list=PLWieu6NbbqTwwYwylgXmmKVX1ZWsUVx8m)
 
-## Setup and Installation
+The ansible playbooks used the following roles
+
+https://github.com/geerlingguy/ansible-role-pip
+https://github.com/geerlingguy/ansible-role-docker
+https://github.com/geerlingguy/ansible-role-postgresql
+
+## Setup and Installation on local machine
 
 1. **Clone the repo from GitHub**
    ```sh
-   git clone https://github.com/devopchallenge/sumtwonumbers-api.git
+   git clone https://github.com/arlekinjose/arlekinjose-sum2numbers.git
    cd sumtwonumbers-api
    ```
 2. **Spin-up PostgreSQL database instance**
@@ -24,15 +30,15 @@ Here are all the videos where we have created this API from scratch - [Youtube P
      ```
 3. **Create database objects**
 
-   In the root application directory (sumtwonumbers-api), SQL script file (sumtwonumbers_db.sql) is present for creating all database objects
+   In the root application directory (sumtwonumbers-api), SQL script file (sumtwonumbers_db-docker.sql) is present for creating all database objects
    - if using docker (else skip this step), first copy this file to the running container using below command and then exec into the running container:
      ```
-     docker container cp sumtwonumbers_db.sql postgresdb:/
+     docker container cp sumtwonumbers_db-docker.sq postgresdb:/
      docker container exec -it postgresdb bash
      ```
    - run the script using psql client:
      ```
-     psql -U postgres --file sumtwonumbers_db.sql
+     psql -U postgres --file sumtwonumbers_db-docker.sq
      ```
 4. **(Optional) Update database configurations in application.properties**
    
@@ -47,3 +53,6 @@ Here are all the videos where we have created this API from scratch - [Youtube P
    ./mvnw spring-boot:run
    ```
    this runs at port 8080 and hence all enpoints can be accessed starting from http://localhost:8080
+
+   ## Setup and Installation on AWS
+   TODO
